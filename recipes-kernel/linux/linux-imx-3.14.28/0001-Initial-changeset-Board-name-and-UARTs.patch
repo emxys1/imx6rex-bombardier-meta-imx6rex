@@ -1,0 +1,79 @@
+From 1b62591587d7b207cce016287bdffda4f4dcb217 Mon Sep 17 00:00:00 2001
+From: angel-munoz <ext.angel.munoz@es.transport.bombardier.com>
+Date: Wed, 19 Aug 2015 19:08:27 +0200
+Subject: [PATCH] Initial changeset: Board name and UARTs
+
+---
+ arch/arm/boot/dts/imx6q-sabresd.dts    |  2 +-
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi | 28 +++++++++++++++++++++++++++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6q-sabresd.dts b/arch/arm/boot/dts/imx6q-sabresd.dts
+index 44ea024..5f6283a 100644
+--- a/arch/arm/boot/dts/imx6q-sabresd.dts
++++ b/arch/arm/boot/dts/imx6q-sabresd.dts
+@@ -16,7 +16,7 @@
+ #include "imx6qdl-sabresd.dtsi"
+ 
+ / {
+-	model = "Freescale i.MX6 Quad SABRE Smart Device Board";
++	model = "i.MX6 Rex Development Baseboard";
+ 	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
+ };
+ 
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 9cf7652..67e32a7 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -700,6 +700,20 @@
+ 			>;
+ 		};
+ 
++		pinctrl_uart2: uart2grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD4_DAT4__UART2_TX_DATA	0x1b0b1
++				MX6QDL_PAD_SD4_DAT7__UART2_RX_DATA	0x1b0b1
++			>;
++		};
++
++		pinctrl_uart3: uart3grp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_D24__UART3_TX_DATA	0x1b0b1
++				MX6QDL_PAD_EIM_D25__UART3_RX_DATA	0x1b0b1
++			>;
++		};
++
+ 		pinctrl_uart5_1: uart5grp-1 {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_KEY_COL1__UART5_TX_DATA	0x1b0b1
+@@ -899,6 +913,18 @@
+ 	status = "okay";
+ };
+ 
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart2>;
++	status = "okay";
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart3>;
++	status = "okay";
++};
++
+ &usbh1 {
+ 	vbus-supply = <&reg_usb_h1_vbus>;
+ 	status = "okay";
+@@ -943,7 +969,7 @@
+ 	non-removable;
+ 	no-1-8-v;
+ 	keep-power-in-suspend;
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &wdog1 {
+-- 
+1.9.1
+
