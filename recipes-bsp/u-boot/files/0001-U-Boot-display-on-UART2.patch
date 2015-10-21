@@ -1,0 +1,55 @@
+From b554583a0fc5711d4f70ed5a77ab34c67e8cde89 Mon Sep 17 00:00:00 2001
+From: angel-munoz <ext.angel.munoz@es.transport.bombardier.com>
+Date: Mon, 5 Oct 2015 13:49:16 +0200
+Subject: [PATCH] U-Boot display on UART2
+
+---
+ board/freescale/mx6sabresd/mx6sabresd.c | 9 ++++++++-
+ include/configs/mx6sabresd.h            | 4 ++--
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/board/freescale/mx6sabresd/mx6sabresd.c b/board/freescale/mx6sabresd/mx6sabresd.c
+index baea5e7..b7018c5 100644
+--- a/board/freescale/mx6sabresd/mx6sabresd.c
++++ b/board/freescale/mx6sabresd/mx6sabresd.c
+@@ -72,6 +72,11 @@ static iomux_v3_cfg_t const uart1_pads[] = {
+ 	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+ };
+ 
++static iomux_v3_cfg_t const uart2_pads[] = {
++	MX6_PAD_SD4_DAT7__UART2_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
++	MX6_PAD_SD4_DAT4__UART2_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
++};
++
+ static iomux_v3_cfg_t const enet_pads[] = {
+ 	MX6_PAD_ENET_MDIO__ENET_MDIO		| MUX_PAD_CTRL(ENET_PAD_CTRL),
+ 	MX6_PAD_ENET_MDC__ENET_MDC		| MUX_PAD_CTRL(ENET_PAD_CTRL),
+@@ -206,7 +211,9 @@ static void setup_pcie(void)
+ 
+ static void setup_iomux_uart(void)
+ {
+-	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
++	//imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
++	// AMC: UART1 is disabled in Bombardier's TME
++	imx_iomux_v3_setup_multiple_pads(uart2_pads, ARRAY_SIZE(uart2_pads));
+ }
+ 
+ #ifdef CONFIG_FSL_ESDHC
+diff --git a/include/configs/mx6sabresd.h b/include/configs/mx6sabresd.h
+index 3ec9346..34360ab 100644
+--- a/include/configs/mx6sabresd.h
++++ b/include/configs/mx6sabresd.h
+@@ -19,8 +19,8 @@
+ #endif
+ 
+ #define CONFIG_MACH_TYPE	3980
+-#define CONFIG_MXC_UART_BASE	UART1_BASE
+-#define CONFIG_CONSOLE_DEV		"ttymxc0"
++#define CONFIG_MXC_UART_BASE	UART2_BASE
++#define CONFIG_CONSOLE_DEV		"ttymxc1"
+ #define CONFIG_MMCROOT			"/dev/mmcblk2p2"
+ #if defined(CONFIG_MX6Q)
+ #define CONFIG_DEFAULT_FDT_FILE	"imx6q-sabresd-ldo.dtb"
+-- 
+1.9.1
+

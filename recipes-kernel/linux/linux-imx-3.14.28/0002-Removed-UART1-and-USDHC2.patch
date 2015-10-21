@@ -1,0 +1,338 @@
+From 7efc5b3a39a48700469e16a07da442f8d4b9a877 Mon Sep 17 00:00:00 2001
+From: angel-munoz <ext.angel.munoz@es.transport.bombardier.com>
+Date: Mon, 5 Oct 2015 16:17:36 +0200
+Subject: [PATCH 2/2] Removed UART1 and USDHC2
+
+---
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi    | 72 +++++++++++++++++++++++--------
+ arch/arm/mach-imx/Makefile                |  3 +-
+ arch/arm/mach-imx/clk-imx6q.c             |  4 +-
+ arch/arm/mach-imx/mxc.h                   |  4 --
+ drivers/mmc/host/sdhci-esdhc-imx.c        |  2 +-
+ drivers/net/ethernet/freescale/fec_main.c | 34 ++++++++++-----
+ 6 files changed, 80 insertions(+), 39 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 67e32a7..9a5c980 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -38,9 +38,32 @@
+ 
+ 		charger-led {
+ 			gpios = <&gpio1 2 0>;
+-			linux,default-trigger = "max8903-charger-charging";
++			//linux,default-trigger = "max8903-charger-charging";
++			linux,default-trigger = "heartbeat";
+ 			retain-state-suspended;
+ 		};
++
++		// AMC: LED Control over GPIO
++		emxys-led_anodo1 {
++			gpios = <&gpio5 28 0>;
++			default-state = "on";
++		};
++
++		emxys-led_anodo2 {
++			gpios = <&gpio1 15 1>;
++			default-state = "off";
++		};
++
++		emxys-led_anodo3 {
++			gpios = <&gpio2 31 1>;
++			default-state = "off";
++		};
++
++		emxys-led_anodo4{
++			gpios = <&gpio2 5 1>;
++			default-state = "off";
++		};
++
+ 	};
+ 
+ 	memory {
+@@ -87,7 +110,7 @@
+ 			enable-active-high;
+ 		};
+ 
+-		reg_sensor: regulator@3 {
++		/*reg_sensor: regulator@3 {
+ 			compatible = "regulator-fixed";
+ 			reg = <3>;
+ 			regulator-name = "sensor-supply";
+@@ -96,7 +119,7 @@
+ 			gpio = <&gpio2 31 0>;
+ 			startup-delay-us = <500>;
+ 			enable-active-high;
+-		};
++		};*/
+ 	};
+ 
+ 	gpio-keys {
+@@ -123,7 +146,7 @@
+ 			gpios = <&gpio1 5 1>;
+ 			gpio-key,wakeup;
+ 			linux,code = <KEY_VOLUMEDOWN>;
+-		};
++		};	
+ 	};
+ 
+ 	sound {
+@@ -234,7 +257,7 @@
+ 		compatible = "fsl,mxc_v4l2_output";
+ 		status = "okay";
+ 	};
+-
++ 
+ 	mipi_dsi_reset: mipi-dsi-reset {
+ 		compatible = "gpio-reset";
+ 		reset-gpios = <&gpio6 11 GPIO_ACTIVE_LOW>;
+@@ -308,7 +331,7 @@
+ 		>;
+        };
+ 
+-	mma8451@1c {
++	/*mma8451@1c {
+ 		compatible = "fsl,mma8451";
+ 		reg = <0x1c>;
+ 		position = <0>;
+@@ -317,7 +340,7 @@
+ 		interrupt-parent = <&gpio1>;
+ 		interrupts = <18 8>;
+ 		interrupt-route = <1>;
+-	};
++	};*/
+ 
+ 	ov564x: ov564x@3c {
+ 		compatible = "ovti,ov564x";
+@@ -496,7 +519,7 @@
+ 		wakeup-gpios = <&gpio6 7 0>;
+ 	};
+ 
+-	mag3110@0e {
++	/*mag3110@0e {
+ 		compatible = "fsl,mag3110";
+ 		reg = <0x0e>;
+ 		position = <2>;
+@@ -504,16 +527,16 @@
+ 		vddio-supply = <&reg_sensor>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <16 1>;
+-	};
++	};*/
+ 
+-	isl29023@44 {
++	/*isl29023@44 {
+ 		compatible = "fsl,isl29023";
+ 		reg = <0x44>;
+ 		rext = <499>;
+ 		vdd-supply = <&reg_sensor>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <9 2>;
+-	};
++	};*/
+ };
+ 
+ &iomuxc {
+@@ -538,7 +561,6 @@
+ 				MX6QDL_PAD_ENET_RXD0__GPIO1_IO27 0x80000000
+ 				MX6QDL_PAD_EIM_A25__GPIO5_IO02 0x80000000
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x80000000
+-				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000
+ 				MX6QDL_PAD_SD1_CMD__GPIO1_IO18 0x80000000
+ 				MX6QDL_PAD_EIM_D16__GPIO3_IO16 0x80000000
+ 				MX6QDL_PAD_SD3_RST__GPIO7_IO08	0x80000000
+@@ -547,12 +569,24 @@
+ 				MX6QDL_PAD_GPIO_1__WDOG2_B 0x80000000
+ 				MX6QDL_PAD_NANDF_CS0__GPIO6_IO11 0x80000000
+ 				MX6QDL_PAD_NANDF_CS1__GPIO6_IO14 0x80000000
++				// ADDED FOR POWER CONTROL
++				MX6QDL_PAD_SD2_DAT1__GPIO1_IO14 0x80000000 /* BAT_SIN_DYS */
++				MX6QDL_PAD_NANDF_D6__GPIO2_IO06 0x80000000 /* CONTROL */
++				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25 0x80000000 /* FF */
++				// ADDED FOR LED CONTROL
++				//MX6QDL_PAD_GPIO_2__GPIO1_IO02 0x130b0     /* gpio-2: charger-led */
++				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000    /* gpio-63 anodo_3*/
++				MX6QDL_PAD_CSI0_DAT10__GPIO5_IO28 0x80000000 /* gpio-156 anodo_1*/
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x80000000   /* gpio-37 anodo_4*/
++				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000   /* gpio-15 anodo_2*/
++				
+ 			>;
+ 		};
+ 
+ 		pinctrl_audmux: audmuxgrp {
+ 			fsl,pins = <
+-				MX6QDL_PAD_CSI0_DAT7__AUD3_RXD		0x130b0
++				// AMC: Disabled, must be used for POWER FF (in)
++				//MX6QDL_PAD_CSI0_DAT7__AUD3_RXD		0x130b0
+ 				MX6QDL_PAD_CSI0_DAT4__AUD3_TXC		0x130b0
+ 				MX6QDL_PAD_CSI0_DAT5__AUD3_TXD		0x110b0
+ 				MX6QDL_PAD_CSI0_DAT6__AUD3_TXFS		0x130b0
+@@ -702,8 +736,8 @@
+ 
+ 		pinctrl_uart2: uart2grp {
+ 			fsl,pins = <
+-				MX6QDL_PAD_SD4_DAT4__UART2_TX_DATA	0x1b0b1
+-				MX6QDL_PAD_SD4_DAT7__UART2_RX_DATA	0x1b0b1
++				MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
++				MX6QDL_PAD_SD4_DAT4__UART2_RX_DATA	0x1b0b1
+ 			>;
+ 		};
+ 
+@@ -907,11 +941,11 @@
+ 	status = "okay";
+ };
+ 
+-&uart1 {
++/*&uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_uart1>;
+ 	status = "okay";
+-};
++};*/
+ 
+ &uart2 {
+ 	pinctrl-names = "default";
+@@ -938,7 +972,7 @@
+ 	status = "okay";
+ };
+ 
+-&usdhc2 {
++/*&usdhc2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_usdhc2>;
+ 	bus-width = <8>;
+@@ -948,7 +982,7 @@
+ 	keep-power-in-suspend;
+ 	enable-sdio-wakeup;
+ 	status = "okay";
+-};
++};*/
+ 
+ &usdhc3 {
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/mach-imx/Makefile b/arch/arm/mach-imx/Makefile
+index 27f1976..b76a214 100644
+--- a/arch/arm/mach-imx/Makefile
++++ b/arch/arm/mach-imx/Makefile
+@@ -122,8 +122,7 @@ obj-$(CONFIG_SOC_IMX6SL) += busfreq_lpddr2.o lpddr2_freq_imx6.o imx6sl_lpm_wfi.o
+ AFLAGS_lpddr2_freq_imx6sx.o :=-Wa,-march=armv7-a
+ AFLAGS_ddr3_freq_imx6sx.o :=-Wa,-march=armv7-a
+ AFLAGS_imx6sx_low_power_idle.o :=-Wa,-march=armv7-a
+-obj-$(CONFIG_SOC_IMX6SX) += ddr3_freq_imx6sx.o lpddr2_freq_imx6sx.o imx6sx_low_power_idle.o \
+-	busfreq_lpddr2.o lpddr2_freq_imx6.o
++obj-$(CONFIG_SOC_IMX6SX) += ddr3_freq_imx6sx.o lpddr2_freq_imx6sx.o imx6sx_low_power_idle.o
+ endif
+ 
+ 
+diff --git a/arch/arm/mach-imx/clk-imx6q.c b/arch/arm/mach-imx/clk-imx6q.c
+index cf060a9..f0d8000 100644
+--- a/arch/arm/mach-imx/clk-imx6q.c
++++ b/arch/arm/mach-imx/clk-imx6q.c
+@@ -148,8 +148,8 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
+ 		post_div_table[1].div = 1;
+ 		post_div_table[2].div = 1;
+ 		video_div_table[1].div = 1;
+-		video_div_table[3].div = 1;
+-	}
++		video_div_table[2].div = 1;
++	};
+ 
+ 	clk[IMX6QDL_PLL1_BYPASS_SRC] = imx_clk_mux("pll1_bypass_src", base + 0x00, 14, 2, pll_bypass_src_sels, ARRAY_SIZE(pll_bypass_src_sels));
+ 	clk[IMX6QDL_PLL2_BYPASS_SRC] = imx_clk_mux("pll2_bypass_src", base + 0x30, 14, 2, pll_bypass_src_sels, ARRAY_SIZE(pll_bypass_src_sels));
+diff --git a/arch/arm/mach-imx/mxc.h b/arch/arm/mach-imx/mxc.h
+index e6af4dd..1510769 100644
+--- a/arch/arm/mach-imx/mxc.h
++++ b/arch/arm/mach-imx/mxc.h
+@@ -158,14 +158,10 @@ extern unsigned int __mxc_cpu_type;
+ #endif
+ 
+ #ifndef __ASSEMBLY__
+-#ifdef CONFIG_SOC_IMX6SL
+ static inline bool cpu_is_imx6sl(void)
+ {
+ 	return __mxc_cpu_type == MXC_CPU_IMX6SL;
+ }
+-#else
+-# define cpu_is_imx6sl() (0)
+-#endif
+ 
+ static inline bool cpu_is_imx6dl(void)
+ {
+diff --git a/drivers/mmc/host/sdhci-esdhc-imx.c b/drivers/mmc/host/sdhci-esdhc-imx.c
+index 868b471..0ceaedd 100644
+--- a/drivers/mmc/host/sdhci-esdhc-imx.c
++++ b/drivers/mmc/host/sdhci-esdhc-imx.c
+@@ -1162,10 +1162,10 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
+ 		goto disable_clk;
+ 
+ 	pm_runtime_set_active(&pdev->dev);
++	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev, 50);
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_suspend_ignore_children(&pdev->dev, 1);
+-	pm_runtime_enable(&pdev->dev);
+ 
+ 	return 0;
+ 
+diff --git a/drivers/net/ethernet/freescale/fec_main.c b/drivers/net/ethernet/freescale/fec_main.c
+index 70564a4..7be5761 100644
+--- a/drivers/net/ethernet/freescale/fec_main.c
++++ b/drivers/net/ethernet/freescale/fec_main.c
+@@ -1192,12 +1192,13 @@ static void
+ fec_enet_tx_queue(struct net_device *ndev, u16 queue_id)
+ {
+ 	struct	fec_enet_private *fep;
+-	struct bufdesc *bdp;
++	struct bufdesc *bdp, *bdp_t;
+ 	unsigned short status;
+ 	struct	sk_buff	*skb;
+ 	struct fec_enet_priv_tx_q *txq;
+ 	struct netdev_queue *nq;
+ 	int	index = 0;
++	int	i, bdnum;
+ 	int	entries_free;
+ 
+ 	fep = netdev_priv(ndev);
+@@ -1218,18 +1219,29 @@ fec_enet_tx_queue(struct net_device *ndev, u16 queue_id)
+ 		if (bdp == txq->cur_tx)
+ 			break;
+ 
+-		index = fec_enet_get_bd_index(txq->tx_bd_base, bdp, fep);
+-
++		bdp_t = bdp;
++		bdnum = 1;
++		index = fec_enet_get_bd_index(txq->tx_bd_base, bdp_t, fep);
+ 		skb = txq->tx_skbuff[index];
+-		txq->tx_skbuff[index] = NULL;
+-		if (!IS_TSO_HEADER(txq, bdp->cbd_bufaddr))
+-			dma_unmap_single(&fep->pdev->dev, bdp->cbd_bufaddr,
+-					bdp->cbd_datlen, DMA_TO_DEVICE);
+-		bdp->cbd_bufaddr = 0;
+-		if (!skb) {
+-			bdp = fec_enet_get_nextdesc(bdp, fep, queue_id);
+-			continue;
++		while (!skb) {
++			bdp_t = fec_enet_get_nextdesc(bdp_t, fep, queue_id);
++			index = fec_enet_get_bd_index(txq->tx_bd_base, bdp_t, fep);
++			skb = txq->tx_skbuff[index];
++			bdnum++;
+ 		}
++		if (skb_shinfo(skb)->nr_frags &&
++		    (status = bdp_t->cbd_sc) & BD_ENET_TX_READY)
++			break;
++
++		for (i = 0; i < bdnum; i++) {
++			if (!IS_TSO_HEADER(txq, bdp->cbd_bufaddr))
++				dma_unmap_single(&fep->pdev->dev, bdp->cbd_bufaddr,
++						 bdp->cbd_datlen, DMA_TO_DEVICE);
++			bdp->cbd_bufaddr = 0;
++			if (i < bdnum - 1)
++				bdp = fec_enet_get_nextdesc(bdp, fep, queue_id);
++		}
++		txq->tx_skbuff[index] = NULL;
+ 
+ 		/* Check for errors. */
+ 		if (status & (BD_ENET_TX_HB | BD_ENET_TX_LC |
+-- 
+1.9.1
+

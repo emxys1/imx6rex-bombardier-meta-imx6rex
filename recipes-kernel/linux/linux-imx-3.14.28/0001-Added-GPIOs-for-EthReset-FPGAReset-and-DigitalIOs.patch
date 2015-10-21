@@ -1,0 +1,118 @@
+From 22a7199c7e1ad50e9ced98b7289f917f4e0b8ca5 Mon Sep 17 00:00:00 2001
+From: angel-munoz <ext.angel.munoz@es.transport.bombardier.com>
+Date: Fri, 16 Oct 2015 09:30:26 +0200
+Subject: [PATCH] Added GPIOs for EthReset, FPGAReset and DigitalIOs
+
+---
+ arch/arm/boot/dts/imx6qdl-sabresd.dtsi | 49 +++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 16 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index a13ad26..d5564eb 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -25,7 +25,8 @@
+ 		pinctrl-names = "default";
+ 		dok_input = <&gpio2 24 1>;
+ 		uok_input = <&gpio1 27 1>;
+-		chg_input = <&gpio3 23 1>;
++		// AMC: disabled, used for GPIO_SAL-1
++		//chg_input = <&gpio3 23 1>;
+ 		flt_input = <&gpio5 2 1>;
+ 		fsl,dcm_always_high;
+ 		fsl,dc_valid;
+@@ -527,9 +528,9 @@
+ 		vddio-supply = <&reg_sensor>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <16 1>;
+-	};*/
++	};
+ 
+-	/*isl29023@44 {
++	isl29023@44 {
+ 		compatible = "fsl,isl29023";
+ 		reg = <0x44>;
+ 		rext = <499>;
+@@ -560,7 +561,6 @@
+ 				MX6QDL_PAD_EIM_CS1__GPIO2_IO24 0x80000000
+ 				MX6QDL_PAD_ENET_RXD0__GPIO1_IO27 0x80000000
+ 				MX6QDL_PAD_EIM_A25__GPIO5_IO02 0x80000000
+-				MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x80000000
+ 				MX6QDL_PAD_SD1_CMD__GPIO1_IO18 0x80000000
+ 				MX6QDL_PAD_EIM_D16__GPIO3_IO16 0x80000000
+ 				MX6QDL_PAD_SD3_RST__GPIO7_IO08	0x80000000
+@@ -569,17 +569,29 @@
+ 				MX6QDL_PAD_GPIO_1__WDOG2_B 0x80000000
+ 				MX6QDL_PAD_NANDF_CS0__GPIO6_IO11 0x80000000
+ 				MX6QDL_PAD_NANDF_CS1__GPIO6_IO14 0x80000000
+-				// ADDED FOR POWER CONTROL
++				// AMC: ADDED FOR POWER CONTROL
+ 				MX6QDL_PAD_SD2_DAT1__GPIO1_IO14 0x80000000 /* BAT_SIN_DYS */
+ 				MX6QDL_PAD_NANDF_D6__GPIO2_IO06 0x80000000 /* CONTROL */
+ 				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25 0x80000000 /* FF */
+-				// ADDED FOR LED CONTROL
++				// AMC: ADDED FOR LED CONTROL
+ 				//MX6QDL_PAD_GPIO_2__GPIO1_IO02 0x130b0     /* gpio-2: charger-led */
+-				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000    /* gpio-63 anodo_3*/
+-				MX6QDL_PAD_CSI0_DAT10__GPIO5_IO28 0x80000000 /* gpio-156 anodo_1*/
+-				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x80000000   /* gpio-37 anodo_4*/
+-				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000   /* gpio-15 anodo_2*/
+-				
++				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000    /* gpio-63 anodo_3 */
++				MX6QDL_PAD_CSI0_DAT10__GPIO5_IO28 0x80000000 /* gpio-156 anodo_1 */
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05 0x80000000   /* gpio-37 anodo_4 */
++				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000   /* gpio-15 anodo_2 */
++				// AMC: ADDED FOR ETH. RESET
++				MX6QDL_PAD_NANDF_D4__GPIO2_IO04 0x80000000   /* Eth.Reset */
++				// AMC: ADDED FOR FPGA RESET
++				MX6QDL_PAD_GPIO_6__GPIO1_IO06 0x80000000   /* FPGA Reset : gpio-6 */
++				// AMC: ADDED FOR GPIO_ENTs 1, 2, 3 & 4
++				MX6QDL_PAD_SD2_DAT2__GPIO1_IO13 0x80000000   /* GPIO_ENT-1 */
++				MX6QDL_PAD_NANDF_D7__GPIO2_IO07 0x80000000   /* GPIO_ENT-2 */
++				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16 0x80000000   /* GPIO_ENT-3 */
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x80000000   /* GPIO_ENT-4 */
++				// AMC: ADDED FOR GPIO_SALs 1 & 2
++				// GPIO3_IO23: Already defined above, re-located here for convenience:
++				MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x80000000 /* GPIO_SAL-1 */
++				MX6QDL_PAD_CSI0_DAT11__GPIO5_IO29 0x80000000 /* GPIO_SAL-2 */
+ 			>;
+ 		};
+ 
+@@ -665,8 +677,10 @@
+ 
+ 		pinctrl_i2c3: i2c3grp {
+ 			fsl,pins = <
+-				MX6QDL_PAD_GPIO_3__I2C3_SCL		0x4001b8b1
+-				MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b1
++				MX6QDL_PAD_EIM_D17__I2C3_SCL		0x4001b8b1
++				MX6QDL_PAD_EIM_D18__I2C3_SDA  		0x4001b8b1
++				//MX6QDL_PAD_GPIO_3__I2C3_SCL		0x4001b8b1
++				//MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b1
+ 			>;
+ 		};
+ 
+@@ -781,15 +795,18 @@
+ 				//AMC: Disabled, must be used for POWER BAT_SIN_DYS (in)
+ 				// BAT_SIN_DYS is GPIO1_IO14				
+ 				//MX6QDL_PAD_SD2_DAT1__SD2_DATA1		0x17059
+-				MX6QDL_PAD_SD2_DAT2__SD2_DATA2		0x17059
++				//AMC: Disabled, must be used for GPIO_ENT-1
++				//MX6QDL_PAD_SD2_DAT2__SD2_DATA2		0x17059
+ 				MX6QDL_PAD_SD2_DAT3__SD2_DATA3		0x17059
+-				MX6QDL_PAD_NANDF_D4__SD2_DATA4		0x17059
++				//AMC: Disabled, must be used for Eth. RESET as GPIO
++				//MX6QDL_PAD_NANDF_D4__SD2_DATA4		0x17059
+ 				//AMC: Disabled, must be used for LED CTRL as GPIO
+ 				//MX6QDL_PAD_NANDF_D5__SD2_DATA5		0x17059
+ 				//AMC: Disabled, must be used for POWER CONTROL signal (out)
+ 				// CONTROL is GPIO2_IO06
+ 				//MX6QDL_PAD_NANDF_D6__SD2_DATA6		0x17059
+-				MX6QDL_PAD_NANDF_D7__SD2_DATA7		0x17059
++				//AMC: Disabled, must be used for GPIO_ENT-2
++				//MX6QDL_PAD_NANDF_D7__SD2_DATA7		0x17059
+ 			>;
+ 		};
+ 
+-- 
+1.9.1
+
